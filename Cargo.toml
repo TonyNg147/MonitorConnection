@@ -1,0 +1,18 @@
+[package]
+name = "htmx"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.8.4"
+chrono = "0.4.41"
+dashmap = "6.1.0"
+eyre = "0.6.12"
+futures-util = "0.3.31"
+getrandom = "0.3.3"
+horrorshow = "0.8.8"
+rand = "0.8"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.45.1", features = ["full"] }
+tokio-stream = { version = "0.1.17", features = ["sync"] }
+tower-http = { version = "0.6.6", features = ["fs"] }
