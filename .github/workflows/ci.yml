@@ -7,6 +7,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   lint:
@@ -22,26 +24,52 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-  build:
+  Build-and-push-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions-rs/toolchain@v1 #  We can manually install the toolchain by running the command `rustup toolchain install stable --profile minimal`
+    - name: Check out the repository
+      uses: actions/checkout@v4
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
       with:
-        toolchain: stable
-    - uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --release --all-features
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v1.1.0
-      with:
-        registry: docker.pkg.github.com
-        username: tonyng147
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        dockerfile: ./Dockerfile
-        repository: 74th/try-github-container-registry/nginx
-        tags: latest
+        
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+    - name: Build and push Docker image
+      id: push
+      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+        subject-digest: ${{ steps.push.outputs.digest }}
+        push-to-registry: true
+    # - uses: actions-rs/toolchain@v1 #  We can manually install the toolchain by running the command `rustup toolchain install stable --profile minimal`
+    #   with:
+    #     toolchain: stable
+    # - uses: actions-rs/cargo@v1
+    #   with:
+    #     command: build
+    #     args: --release --all-features
   Deploy:
     runs-on: ubuntu-latest
     steps:
