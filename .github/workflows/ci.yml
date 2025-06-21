@@ -26,6 +26,7 @@ jobs:
           command: fmt
   Build-and-push-image:
     runs-on: ubuntu-latest
+    needs: lint
     permissions:
       contents: read
       packages: write
@@ -41,7 +42,7 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
@@ -72,6 +73,7 @@ jobs:
     #     args: --release --all-features
   Deploy:
     runs-on: ubuntu-latest
+    needs: ["lint", "Build-and-push-image"]
     steps:
       - name: Deploy source to Render server.
         # Only run this step if the branch is main
