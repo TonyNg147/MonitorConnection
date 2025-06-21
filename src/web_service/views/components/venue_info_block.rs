@@ -2,7 +2,11 @@ use horrorshow::html;
 
 use crate::state::VenueDisplayInfo;
 
-pub fn build(info: VenueDisplayInfo, event_listener: &str) -> String {
+/// This function is to build visual DOM corresponding component
+///
+/// It relies on the Actual Venue Display and no need to consume (Take a owned value)
+/// So reference being used here.
+pub fn build(info: &VenueDisplayInfo, event_listener: &str) -> String {
     let mut current_status = info.connected_status.chars();
     let capitalized_status = if let Some(first_char) = current_status.next() {
         first_char

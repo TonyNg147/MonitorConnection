@@ -33,3 +33,13 @@ jobs:
       with:
         command: build
         args: --release --all-features
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy source to Render server.
+        # Only run this step if the branch is main
+        if: github.ref == 'refs/heads/main'
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl "$deploy_url"

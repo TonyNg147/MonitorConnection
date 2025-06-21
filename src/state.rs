@@ -74,6 +74,17 @@ impl PerConnection {
         }
     }
 
+    pub fn build_display_venue_info(&self) -> VenueDisplayInfo {
+        // Temporarily leave the update_time and connected_status as "Not updated yet".
+        // They have to be corresponded with the current values of PerConnection.
+        VenueDisplayInfo {
+            venue_id: self.venue_id.clone(),
+            initial_time: utils::to_time_format(&self.initial_connection),
+            update_time: "Not detected yet".into(),
+            connected_status: "Not detected Yet".into(),
+        }
+    }
+
     pub async fn run(&mut self) {
         let event_interval = self.event_interval.take();
         let initial_established_connection_time = self.initial_connection;
@@ -193,7 +204,7 @@ mod utils {
         };
 
         let _res = updater.send(Event::default().event(event).data(venue_info_block::build(
-            prepared_data,
+            &prepared_data,
             &format!("venue-{}", venue_id),
         )));
     }
